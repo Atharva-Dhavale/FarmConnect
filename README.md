@@ -19,8 +19,8 @@
 ## 📦 Installation  
 1. Clone the repo:  
    ```sh
-   git clone https://github.com/your-username/farm-connect.git  
-   cd farm-connect  
+   git clone https://github.com/Atharva-Dhavale/FarmConnect  
+   cd FarmConnect   
    ```  
 2. Install dependencies:  
    ```sh
