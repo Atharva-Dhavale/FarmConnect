@@ -1,26 +1,227 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 241, 245, 249;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+@layer base {
+  h1 {
+    @apply text-3xl font-bold;
+  }
+  h2 {
+    @apply text-2xl font-semibold;
+  }
+  h3 {
+    @apply text-xl font-medium;
+  }
+  
+  /* Improved focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white;
+  }
+}
+
+@layer components {
+  /* Modern Button Styles */
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium transform hover:translate-y-[-1px];
+  }
+  
+  .btn-secondary {
+    @apply bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow-soft-md hover:shadow-md hover:bg-gray-50 transition-all duration-200 font-medium transform hover:translate-y-[-1px];
+  }
+  
+  .btn-accent {
+    @apply bg-gradient-to-r from-accent-500 to-accent-600 hover:from-accent-600 hover:to-accent-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium transform hover:translate-y-[-1px];
+  }
+  
+  /* Card Styles */
+  .card {
+    @apply bg-white rounded-xl shadow-soft-md hover:shadow-soft-xl transition-all duration-300 overflow-hidden transform hover:translate-y-[-2px];
+  }
+  
+  .card-gradient {
+    @apply bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-soft-md hover:shadow-soft-xl transition-all duration-300 overflow-hidden transform hover:translate-y-[-2px];
+  }
+  
+  /* Input Styles */
+  .input-field {
+    @apply w-full border-gray-200 rounded-lg shadow-inner-soft focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200;
+  }
+  
+  /* Glass Effect */
+  .glass {
+    @apply bg-white bg-opacity-70 backdrop-filter backdrop-blur-lg border border-white border-opacity-20 shadow-soft-md;
+  }
+  
+  .glass-dark {
+    @apply bg-gray-900 bg-opacity-70 backdrop-filter backdrop-blur-lg border border-gray-800 border-opacity-20 shadow-soft-md;
+  }
+  
+  /* Gradient Text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-500;
+  }
+  
+  .text-gradient-accent {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-accent-500 to-accent-600;
+  }
+  
+  /* Badge Styles */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-success {
+    @apply bg-gradient-to-r from-green-50 to-primary-50 text-primary-700;
+  }
+  
+  .badge-warning {
+    @apply bg-gradient-to-r from-yellow-50 to-accent-50 text-accent-700;
+  }
+  
+  .badge-info {
+    @apply bg-gradient-to-r from-blue-50 to-secondary-50 text-secondary-700;
+  }
+  
+  /* Dashboard Card */
+  .dashboard-card {
+    @apply bg-white rounded-xl shadow-soft-md p-6 border border-gray-100 hover:shadow-soft-lg transition-all duration-300 transform hover:translate-y-[-2px];
+  }
+  
+  /* Stats Card */
+  .stats-card {
+    @apply bg-gradient-to-br from-white to-gray-50 p-6 rounded-xl shadow-soft-md hover:shadow-soft-xl transition-all duration-300 transform hover:translate-y-[-2px];
+  }
+  
+  /* Table Styles */
+  .table-modern {
+    @apply min-w-full divide-y divide-gray-200 rounded-lg overflow-hidden;
+  }
+  
+  .table-modern thead {
+    @apply bg-gray-50;
+  }
+  
+  .table-modern th {
+    @apply px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  }
+  
+  .table-modern tbody {
+    @apply bg-white divide-y divide-gray-200;
+  }
+  
+  .table-modern td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-gray-500;
+  }
+  
+  .table-modern tr {
+    @apply hover:bg-gray-50 transition-colors;
+  }
+}
+
+/* Modern Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-slide-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-subtle {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Gradient Backgrounds */
+.bg-gradient-primary {
+  @apply bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800;
+}
+
+.bg-gradient-secondary {
+  @apply bg-gradient-to-br from-secondary-600 via-secondary-700 to-secondary-800;
+}
+
+.bg-gradient-accent {
+  @apply bg-gradient-to-br from-accent-500 via-accent-600 to-accent-700;
+}
+
+.bg-gradient-light {
+  @apply bg-gradient-to-br from-gray-50 to-white;
+}
+
+/* Page Transitions */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
 }
