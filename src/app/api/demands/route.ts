@@ -3,7 +3,6 @@ import dbConnect from "@/lib/db";
 import Demand from "@/lib/models/Demand";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import User from '@/models/User';
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,26 +10,45 @@ export async function GET(req: NextRequest) {
     
     const url = new URL(req.url);
     const category = url.searchParams.get("category");
+    const retailer = url.searchParams.get("retailer");
     const status = url.searchParams.get("status");
     
-    let query: any = {};
+    const query: any = {};
     
     if (category) query.category = category;
+    if (retailer) query.retailer = retailer;
     if (status) query.status = status;
-    else query.status = 'open';
     
-    const demands = await Demand.find(query).sort({ createdAt: -1 });
+    // Get the session to determine if user is a farmer or retailer
+    const session = await getServerSession(authOptions);
     
-    return NextResponse.json(demands);
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
+    // If the user is a retailer, only show their own demands
+    if (session.user.role === 'retailer') {
+      query.retailer = session.user.id;
+    }
+    
+    const demands = await Demand.find(query)
+      .populate("retailer", "name email location")
+      .sort({ createdAt: -1 });
+    
+    return NextResponse.json({ success: true, data: demands });
   } catch (error: any) {
+    console.error('Error fetching demands:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch demands' },
+      { success: false, message: error.message },
       { status: 500 }
     );
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -41,39 +59,33 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    if (session.user.role !== "retailer") {
+    if (session.user.role !== 'retailer') {
       return NextResponse.json(
-        { error: 'Only retailers can post demands' },
+        { error: 'Only retailers can create demands' },
         { status: 403 }
       );
     }
-    
+
     await dbConnect();
-    
-    const user = await User.findById(session.user.id);
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
-    }
-    
-    const data = await req.json();
-    
-    const newDemand = new Demand({
+    const data = await request.json();
+
+    const demand = await Demand.create({
       ...data,
-      retailerId: user._id,
-      retailerName: user.name,
+      retailer: session.user.id,
       status: 'open',
     });
-    
-    await newDemand.save();
-    
-    return NextResponse.json(newDemand, { status: 201 });
+
+    return NextResponse.json({ 
+      success: true, 
+      data: demand 
+    });
   } catch (error: any) {
+    console.error('Error creating demand:', error);
     return NextResponse.json(
-      { error: 'Failed to create demand' },
+      { 
+        success: false, 
+        error: error.message || 'Failed to create demand'
+      },
       { status: 500 }
     );
   }

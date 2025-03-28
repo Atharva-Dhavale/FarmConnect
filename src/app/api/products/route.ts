@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
     
     return NextResponse.json({ success: true, data: products });
   } catch (error: any) {
+    console.error('Error fetching products:', error);
     return NextResponse.json(
       { success: false, message: error.message },
       { status: 500 }
@@ -34,40 +35,45 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
     if (!session) {
       return NextResponse.json(
-        { success: false, message: "Not authenticated" },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
     
-    if (session.user.role !== "farmer") {
+    if (session.user.role !== 'farmer') {
       return NextResponse.json(
-        { success: false, message: "Only farmers can add products" },
+        { error: 'Only farmers can add products' },
         { status: 403 }
       );
     }
-    
+
     await dbConnect();
-    
-    const body = await req.json();
-    
+    const data = await request.json();
+
     const product = await Product.create({
-      ...body,
+      ...data,
       farmer: session.user.id,
+      isAvailable: true,
+      quality: 'standard', // Default quality
     });
-    
-    return NextResponse.json(
-      { success: true, data: product },
-      { status: 201 }
-    );
+
+    return NextResponse.json({ 
+      success: true, 
+      data: product 
+    });
   } catch (error: any) {
+    console.error('Error creating product:', error);
     return NextResponse.json(
-      { success: false, message: error.message },
+      { 
+        success: false, 
+        error: error.message || 'Failed to create product'
+      },
       { status: 500 }
     );
   }
