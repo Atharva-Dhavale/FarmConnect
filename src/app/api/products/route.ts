@@ -3,6 +3,7 @@ import dbConnect from "@/lib/db";
 import Product from "@/lib/models/Product";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { notifyRetailersOfProduct, notifyTransportersOfProductLocation } from "@/lib/services/notificationService";
 
 export async function GET(req: NextRequest) {
   try {
@@ -60,8 +61,31 @@ export async function POST(request: Request) {
       ...data,
       farmer: session.user.id,
       isAvailable: true,
-      quality: 'standard', // Default quality
+      quality: data.quality || 'standard', // Default quality
     });
+
+    // Send notifications
+    try {
+      // Notify retailers about the new product
+      await notifyRetailersOfProduct(
+        product._id.toString(),
+        session.user.id,
+        product.name
+      );
+      
+      // If location is provided, notify transporters
+      if (data.location) {
+        await notifyTransportersOfProductLocation(
+          product._id.toString(),
+          session.user.id,
+          product.name,
+          data.location
+        );
+      }
+    } catch (notificationError) {
+      console.error('Error sending notifications:', notificationError);
+      // Don't fail the request if notifications fail
+    }
 
     return NextResponse.json({ 
       success: true, 

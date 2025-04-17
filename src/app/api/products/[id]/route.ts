@@ -5,13 +5,15 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
 export async function GET(
-  req: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     await dbConnect();
     
-    const product = await Product.findById(params.id).populate("farmer", "name location phone");
+    const { id } = params;
+    
+    const product = await Product.findById(id).populate("farmer", "name location");
     
     if (!product) {
       return NextResponse.json(
@@ -22,6 +24,7 @@ export async function GET(
     
     return NextResponse.json({ success: true, data: product });
   } catch (error: any) {
+    console.error('Error fetching product:', error);
     return NextResponse.json(
       { success: false, message: error.message },
       { status: 500 }
@@ -30,7 +33,7 @@ export async function GET(
 }
 
 export async function PUT(
-  req: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -38,49 +41,61 @@ export async function PUT(
     
     if (!session) {
       return NextResponse.json(
-        { success: false, message: "Not authenticated" },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
     
+    if (session.user.role !== 'farmer') {
+      return NextResponse.json(
+        { error: 'Only farmers can update products' },
+        { status: 403 }
+      );
+    }
+
     await dbConnect();
     
-    const product = await Product.findById(params.id);
+    const { id } = params;
+    const data = await request.json();
     
-    if (!product) {
+    // Find the product to ensure it belongs to the current farmer
+    const existingProduct = await Product.findOne({
+      _id: id,
+      farmer: session.user.id
+    });
+    
+    if (!existingProduct) {
       return NextResponse.json(
-        { success: false, message: "Product not found" },
+        { error: 'Product not found or you do not have permission to update it' },
         { status: 404 }
       );
     }
     
-    // Check if the user is the owner of the product
-    if (product.farmer.toString() !== session.user.id && session.user.role !== "admin") {
-      return NextResponse.json(
-        { success: false, message: "Not authorized to update this product" },
-        { status: 403 }
-      );
-    }
-    
-    const body = await req.json();
-    
+    // Update the product
     const updatedProduct = await Product.findByIdAndUpdate(
-      params.id,
-      { ...body },
-      { new: true, runValidators: true }
+      id,
+      { ...data },
+      { new: true }
     );
     
-    return NextResponse.json({ success: true, data: updatedProduct });
+    return NextResponse.json({ 
+      success: true, 
+      data: updatedProduct 
+    });
   } catch (error: any) {
+    console.error('Error updating product:', error);
     return NextResponse.json(
-      { success: false, message: error.message },
+      { 
+        success: false, 
+        error: error.message || 'Failed to update product'
+      },
       { status: 500 }
     );
   }
 }
 
 export async function DELETE(
-  req: NextRequest,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -88,36 +103,49 @@ export async function DELETE(
     
     if (!session) {
       return NextResponse.json(
-        { success: false, message: "Not authenticated" },
+        { error: 'Unauthorized' },
         { status: 401 }
       );
     }
     
+    if (session.user.role !== 'farmer') {
+      return NextResponse.json(
+        { error: 'Only farmers can delete products' },
+        { status: 403 }
+      );
+    }
+
     await dbConnect();
     
-    const product = await Product.findById(params.id);
+    const { id } = params;
     
-    if (!product) {
+    // Find the product to ensure it belongs to the current farmer
+    const existingProduct = await Product.findOne({
+      _id: id,
+      farmer: session.user.id
+    });
+    
+    if (!existingProduct) {
       return NextResponse.json(
-        { success: false, message: "Product not found" },
+        { error: 'Product not found or you do not have permission to delete it' },
         { status: 404 }
       );
     }
     
-    // Check if the user is the owner of the product
-    if (product.farmer.toString() !== session.user.id && session.user.role !== "admin") {
-      return NextResponse.json(
-        { success: false, message: "Not authorized to delete this product" },
-        { status: 403 }
-      );
-    }
+    // Delete the product
+    await Product.findByIdAndDelete(id);
     
-    await Product.findByIdAndDelete(params.id);
-    
-    return NextResponse.json({ success: true, data: {} });
+    return NextResponse.json({ 
+      success: true,
+      message: 'Product deleted successfully'
+    });
   } catch (error: any) {
+    console.error('Error deleting product:', error);
     return NextResponse.json(
-      { success: false, message: error.message },
+      { 
+        success: false, 
+        error: error.message || 'Failed to delete product'
+      },
       { status: 500 }
     );
   }

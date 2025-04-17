@@ -62,10 +62,10 @@ export default function DashboardLayout({
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/" className="flex items-center">
-                <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xl font-bold shadow-md">
                   FC
                 </div>
-                <span className="ml-2 text-xl font-bold text-gradient">
+                <span className="ml-3 text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-800">
                   FarmConnect
                 </span>
               </Link>

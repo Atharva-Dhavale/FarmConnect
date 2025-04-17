@@ -41,11 +41,11 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-xl font-bold shadow-md">
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                 FC
               </div>
-              <span className={`ml-2 text-xl font-bold ${scrolled || !isHomePage ? 'text-primary-700' : 'text-white'}`}>
-                FarmConnect
+              <span className={`ml-2 text-2xl font-extrabold ${scrolled || !isHomePage ? 'text-primary-700' : 'text-white'} tracking-tight`}>
+                Farm<span className="text-accent-500">Connect</span>
               </span>
             </Link>
           </div>

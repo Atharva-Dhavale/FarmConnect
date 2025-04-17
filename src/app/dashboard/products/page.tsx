@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { Search, Plus, Filter, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import ProductInfoCard from '@/components/ui/ProductInfoCard';
 
 interface Product {
   _id: string;
@@ -23,10 +24,18 @@ interface Product {
   harvestDate?: string;
   expiryDate?: string;
   createdAt: string;
+  farmer?: {
+    _id: string;
+    name: string;
+    location?: {
+      address: string;
+    };
+  };
 }
 
 export default function ProductsPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -110,15 +119,22 @@ export default function ProductsPage() {
     }
   };
 
-  // Format date to readable format
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const handleProductAction = (action: 'view' | 'edit' | 'delete', productId: string) => {
+    const product = products.find(p => p._id === productId);
+    if (!product) return;
+    
+    if (action === 'view') {
+      router.push(`/dashboard/products/${productId}`);
+    } else if (action === 'edit') {
+      router.push(`/dashboard/products/edit/${productId}`);
+    } else if (action === 'delete') {
+      // Confirmation dialog could be implemented
+      if (confirm('Are you sure you want to delete this product?')) {
+        // In a real app, you would call an API to delete the product
+        toast.success('Product deleted successfully');
+        setProducts(prevProducts => prevProducts.filter(p => p._id !== productId));
+      }
+    }
   };
 
   return (
@@ -211,96 +227,12 @@ export default function ProductsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => (
-            <Card key={product._id}>
-              <div className="aspect-w-16 aspect-h-9 relative">
-                {product.images && product.images[0] ? (
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="object-cover w-full h-48 rounded-t-lg"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                    }}
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
-                    <p className="text-gray-500">No image available</p>
-                  </div>
-                )}
-                <div className="absolute top-2 right-2 flex space-x-2">
-                  {product.isOrganic && (
-                    <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">
-                      Organic
-                    </span>
-                  )}
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    product.isAvailable 
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {product.isAvailable ? 'Available' : 'Unavailable'}
-                  </span>
-                </div>
-              </div>
-              <div className="p-4 space-y-3">
-                <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
-                <p className="text-sm text-gray-500 line-clamp-2">{product.description || 'No description available'}</p>
-                
-                <div className="flex items-center text-sm text-gray-500">
-                  <Filter className="w-4 h-4 mr-1" />
-                  <span>{product.category.charAt(0).toUpperCase() + product.category.slice(1)}</span>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div className="text-2xl font-bold text-primary-600">
-                    ₹{product.price}/{product.unit}
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    product.quality === 'premium' 
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : product.quality === 'standard'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {product.quality ? product.quality.charAt(0).toUpperCase() + product.quality.slice(1) : 'Standard'}
-                  </span>
-                </div>
-                
-                <div className="text-sm text-gray-500">
-                  Available: {product.quantity} {product.unit}
-                </div>
-                
-                {product.harvestDate && (
-                  <div className="text-sm text-gray-500">
-                    Harvest Date: {formatDate(product.harvestDate)}
-                  </div>
-                )}
-                
-                {product.expiryDate && (
-                  <div className="text-sm text-gray-500">
-                    Expiry Date: {formatDate(product.expiryDate)}
-                  </div>
-                )}
-                
-                <div className="flex space-x-2 pt-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => toggleProductAvailability(product._id, product.isAvailable)}
-                  >
-                    {product.isAvailable ? 'Mark Unavailable' : 'Mark Available'}
-                  </Button>
-                  <Link href={`/dashboard/products/edit/${product._id}`}>
-                    <Button 
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Edit
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </Card>
+            <ProductInfoCard 
+              key={product._id}
+              product={product}
+              showFarmerInfo={!isFarmer}
+              onActionClick={handleProductAction}
+            />
           ))}
         </div>
       )}

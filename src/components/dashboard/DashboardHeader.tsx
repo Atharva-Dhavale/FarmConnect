@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { 
-  Bell, 
   Search, 
   User, 
   Settings, 
@@ -12,6 +11,7 @@ import {
   ChevronDown,
   HelpCircle
 } from 'lucide-react';
+import NotificationBell from '../ui/NotificationBell';
 
 type User = {
   name?: string | null;
@@ -22,7 +22,6 @@ type User = {
 
 export default function DashboardHeader({ user }: { user: User }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
   
   return (
     <header className="bg-white shadow-sm z-10">
@@ -55,60 +54,7 @@ export default function DashboardHeader({ user }: { user: User }) {
             
             {/* Notifications dropdown */}
             <div className="ml-4 relative">
-              <button
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-colors"
-              >
-                <span className="sr-only">Notifications</span>
-                <div className="relative">
-                  <Bell className="h-6 w-6" />
-                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
-                </div>
-              </button>
-              
-              {notificationsOpen && (
-                <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
-                  <div className="py-2 border-b border-gray-100 px-4 flex justify-between items-center">
-                    <h3 className="text-sm font-medium text-gray-900">Notifications</h3>
-                    <button className="text-xs text-primary-600 hover:text-primary-700 font-medium">
-                      Mark all as read
-                    </button>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {[1, 2, 3].map((item) => (
-                      <a
-                        key={item}
-                        href="#"
-                        className="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
-                      >
-                        <div className="flex">
-                          <div className="flex-shrink-0">
-                            <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600">
-                              <Bell className="h-5 w-5" />
-                            </div>
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">
-                              New demand posted
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              A retailer posted a new demand for organic tomatoes
-                            </p>
-                            <p className="mt-1 text-xs text-gray-400">
-                              2 hours ago
-                            </p>
-                          </div>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                  <div className="py-2 border-t border-gray-100 px-4 text-center">
-                    <a href="#" className="text-sm font-medium text-primary-600 hover:text-primary-700">
-                      View all notifications
-                    </a>
-                  </div>
-                </div>
-              )}
+              <NotificationBell />
             </div>
             
             {/* User dropdown */}

@@ -3,6 +3,7 @@ import dbConnect from "@/lib/db";
 import Demand from "@/lib/models/Demand";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { notifyFarmersOfDemand } from "@/lib/services/notificationService";
 
 export async function GET(req: NextRequest) {
   try {
@@ -74,6 +75,18 @@ export async function POST(request: Request) {
       retailer: session.user.id,
       status: 'open',
     });
+
+    // Send notifications to farmers about the new demand
+    try {
+      await notifyFarmersOfDemand(
+        demand._id.toString(),
+        session.user.id,
+        demand.product
+      );
+    } catch (notificationError) {
+      console.error('Error sending notifications:', notificationError);
+      // Don't fail the request if notifications fail
+    }
 
     return NextResponse.json({ 
       success: true, 
